@@ -50,7 +50,7 @@ const AddFoddModal: FC<AddFoodModalProps> = ({onClose, visible}) => {
           <View style={styles.buttonContainer}>
             <Button
               title="Add"
-              icon={<Icon name="plus" color="#fff" />}
+              icon={<Icon name="add" color="#fff" />}
               color="#4ecb71"
               radius="lg"
             />
