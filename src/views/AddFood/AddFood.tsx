@@ -1,13 +1,35 @@
-import React, {useState} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, Text, StyleSheet, Alert, ScrollView} from 'react-native';
 import Header from '../../components/Header';
 import {Button, Icon, Input} from '@rneui/themed';
 import AddFoddModal from '../../components/AddFoodModal/AddFoodModal';
+import useFoodStorage from '../../hooks/useFoodStorage';
+import {Meal} from '../../types';
+import MealItem from '../../components/MealItem';
 
 const AddFood = () => {
   const [visible, setIsVisible] = useState<boolean>(false);
+  const [foods, setFoods] = useState<Meal[]>([]);
+  const {onGetFood} = useFoodStorage();
 
-  const handleModalClose = () => {
+  const loadFoods = async () => {
+    try {
+      const foodsResponse = await onGetFood();
+      setFoods(foodsResponse);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    loadFoods().catch(null);
+  }, []);
+
+  const handleModalClose = async (shouldUpdate?: boolean) => {
+    if (shouldUpdate) {
+      Alert.alert('Cominda guardada exitosamente');
+      loadFoods();
+    }
     setIsVisible(false);
   };
 
@@ -29,7 +51,7 @@ const AddFood = () => {
       </View>
       <View style={styles.searchContainer}>
         <View style={styles.inputContainer}>
-          <Input placeholder="apples, pie, soda.." />
+          <Input placeholder="apples, frie, soda..." />
         </View>
         <Button
           title="Search"
@@ -38,6 +60,11 @@ const AddFood = () => {
           radius="lg"
         />
       </View>
+      <ScrollView style={styles.content}>
+        {foods?.map(meal => (
+          <MealItem key={`my-meal-item-${meal.name}`} {...meal} />
+        ))}
+      </ScrollView>
       <AddFoddModal visible={visible} onClose={handleModalClose} />
     </View>
   );
@@ -46,6 +73,11 @@ const AddFood = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 12,
+    backgroundColor: '#fff',
+    flex: 1,
+  },
+  content: {
+    flex: 1,
   },
   legendContainer: {
     flex: 1,
