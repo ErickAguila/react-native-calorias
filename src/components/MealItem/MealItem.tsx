@@ -1,9 +1,41 @@
 import React, {FC} from 'react';
-import {Text, View, StyleSheet} from 'react-native';
+import {Text, View, StyleSheet, Alert} from 'react-native';
 import {Meal} from '../../types';
 import {Button, Icon} from '@rneui/base';
+import useFoodStorage from '../../hooks/useFoodStorage';
 
-const MealItem: FC<Meal> = ({calories, portion, name}) => {
+type MealItemProps = Meal & {
+  isAbleToAdd?: boolean;
+  onCompleteAddRemove?: () => void;
+  itemPosition?: number;
+};
+
+const MealItem: FC<MealItemProps> = ({
+  calories,
+  portion,
+  name,
+  isAbleToAdd,
+  itemPosition,
+  onCompleteAddRemove,
+}) => {
+  const {onSaveTodayFood, onDeleteTodayFood} = useFoodStorage();
+
+  const handleIconPress = async () => {
+    try {
+      if (isAbleToAdd) {
+        await onSaveTodayFood({calories, portion, name});
+        Alert.alert('Comida agregada al día');
+      } else {
+        await onDeleteTodayFood(itemPosition ?? -1);
+        Alert.alert('Comida eliminada');
+      }
+      onCompleteAddRemove?.();
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Comida no agregada');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.leftContainer}>
@@ -12,9 +44,10 @@ const MealItem: FC<Meal> = ({calories, portion, name}) => {
       </View>
       <View style={styles.rightContainer}>
         <Button
-          icon={<Icon name="add-circle-outline" />}
+          icon={<Icon name={isAbleToAdd ? 'add-circle-outline' : 'close'} />}
           type="clear"
           style={styles.iconButton}
+          onPress={handleIconPress}
         />
         <Text style={styles.calories}>{calories} cal</Text>
       </View>

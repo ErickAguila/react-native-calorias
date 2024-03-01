@@ -10,6 +10,7 @@ import MealItem from '../../components/MealItem';
 const AddFood = () => {
   const [visible, setIsVisible] = useState<boolean>(false);
   const [foods, setFoods] = useState<Meal[]>([]);
+  const [search, setSearch] = useState<string>('');
   const {onGetFood} = useFoodStorage();
 
   const loadFoods = async () => {
@@ -33,6 +34,20 @@ const AddFood = () => {
     setIsVisible(false);
   };
 
+  const handleSearchPress = async () => {
+    try {
+      const result = await onGetFood();
+      setFoods(
+        result.filter((item: Meal) =>
+          item.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()),
+        ),
+      );
+    } catch (error) {
+      console.error(error);
+      setFoods([]);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Header />
@@ -51,18 +66,23 @@ const AddFood = () => {
       </View>
       <View style={styles.searchContainer}>
         <View style={styles.inputContainer}>
-          <Input placeholder="apples, frie, soda..." />
+          <Input
+            placeholder="apples, frie, soda..."
+            value={search}
+            onChangeText={(text: string) => setSearch(text)}
+          />
         </View>
         <Button
           title="Search"
           color="#ade8af"
           titleStyle={styles.searchBtnTile}
           radius="lg"
+          onPress={handleSearchPress}
         />
       </View>
       <ScrollView style={styles.content}>
         {foods?.map(meal => (
-          <MealItem key={`my-meal-item-${meal.name}`} {...meal} />
+          <MealItem key={`my-meal-item-${meal.name}`} {...meal} isAbleToAdd />
         ))}
       </ScrollView>
       <AddFoddModal visible={visible} onClose={handleModalClose} />
